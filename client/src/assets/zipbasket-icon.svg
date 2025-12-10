@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 300" width="240" height="300">
+  <!-- Transparent background -->
+  <rect width="100%" height="100%" fill="none"/>
+  <!-- Stylized question-mark / cart icon recreated as vector -->
+  <!-- Using evenodd fill-rule to create hollow inner cutout for the top shape -->
+  <path fill="#31C07B" fill-rule="evenodd" d="
+    M20 40
+    h140
+    a20 20 0 0 1 20 20
+    v20
+    a20 20 0 0 1 -20 20
+    h-86
+    c-10 0 -18 8 -18 18
+    0 10 8 18 18 18
+    h86
+    a46 46 0 0 0 46 -46
+    v-20
+    a46 46 0 0 0 -46 -46
+    h-140
+    a20 20 0 0 0 -20 20
+    v40
+    a20 20 0 0 0 20 20
+    z
+    M70 90
+    c-18 0 -34 14 -34 32
+    s16 32 34 32
+    34-14 34-32
+    -16-32 -34-32
+    z" />
+  <!-- Two dots under the icon -->
+  <circle cx="120" cy="190" r="16" fill="#31C07B"/>
+  <circle cx="120" cy="240" r="12" fill="#31C07B"/>
+</svg>

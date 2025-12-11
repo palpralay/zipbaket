@@ -13,14 +13,19 @@ import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";  
 import AddAddress from "./pages/AddAddress";
 import Myorders from "./pages/Myorders";
+import SellerLogin from "./component/seller/SellerLogin";
+import SellerLayout from "./pages/seller/SallerLayout";
+import AddProduct from "./pages/seller/AddProduct";
+import ProductList from "./pages/seller/ProductList";
+import Orders from "./pages/seller/Orders";
 
 const App = () => {
   const isSellerpath = useLocation().pathname.includes("seller");
 
-  const { showUserLogin } = useContext(AppContext);
+  const { showUserLogin, isSeller } = useContext(AppContext);
 
   return (
-    <div className="overflow-y-scroll no-scrollbar">
+    <div className="text-default min-h-screen text-gray-700 bg-white">
       <Toaster />
 
       {isSellerpath ? null : <Navbar />}
@@ -36,7 +41,13 @@ const App = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/add-address" element={<AddAddress />} />
           <Route path="/my-orders" element={<Myorders />} />
+          <Route path="/seller/*" element={isSeller ?  <SellerLayout /> : <SellerLogin />} />
+          <Route index element = {isSeller ? <AddProduct /> : null} />
+          <Route path="product-list" element={isSeller ? <ProductList /> : null} />
+          <Route path="orders" element={isSeller ? <Orders /> : null} />
+
         </Routes>
+
         {!isSellerpath && <Footer />}
       </div>
     </div>

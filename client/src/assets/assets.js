@@ -70,8 +70,10 @@ import quinoa_image from "./quinoa_image.png";
 import brown_rice_image from "./brown_rice_image.png";
 import barley_image from "./barley_image.png";
 import zlogo from "./zlogo.svg";
+import Delivery_address_amico from "./Delivery address-amico.svg"
 
 export const assets = {
+  Delivery_address_amico,
   zlogo,
   logo,
   search_icon,

@@ -22,7 +22,7 @@ const SellerLayout = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen no-scrollbar bg-gray-50">
             {/* Header */}
             <div className="flex items-center justify-between px-4 md:px-8 border-b border-gray-300 py-3 bg-white shadow-sm sticky top-0 z-50">
                 <div className="flex items-center gap-4">
@@ -69,7 +69,7 @@ const SellerLayout = () => {
                 </div>
             </div>
 
-            <div className='flex relative'>
+            <div className='flex relative h-[calc(100vh-65px)]'>
                 {/* Mobile Overlay */}
                 {isSidebarOpen && (
                     <div
@@ -81,12 +81,14 @@ const SellerLayout = () => {
                 {/* Sidebar */}
                 <aside
                     className={`
-                        fixed md:sticky top-0 left-0 h-screen md:h-[calc(100vh-65px)]
-                        w-64 md:w-64 
+                        fixed md:relative left-0 
+                        h-screen md:h-full
+                        w-64 
                         border-r border-gray-300 
                         pt-4 bg-white
                         flex flex-col 
-                        transition-transform duration-300 z-50
+                        transition-transform duration-300 z-50 md:z-10
+                        overflow-hidden
                         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                     `}
                 >
@@ -142,7 +144,7 @@ const SellerLayout = () => {
                 </aside>
 
                 {/* Main Content */}
-                <main className="flex-1 p-4 md:p-8 overflow-auto bg-gray-50 min-h-[calc(100vh-65px)]">
+                <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-gray-50">
                     <Outlet />
                 </main>
             </div>

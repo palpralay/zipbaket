@@ -10,17 +10,18 @@ import { AppContext } from "./context/AppContext";
 import AllProduct from "./pages/AllProduct";
 import ProductCategories from "./pages/ProductCategories";
 import ProductDetails from "./pages/ProductDetails";
-import Cart from "./pages/Cart";  
+import Cart from "./pages/Cart";
 import AddAddress from "./pages/AddAddress";
 import Myorders from "./pages/Myorders";
 import SellerLogin from "./component/seller/SellerLogin";
-import SellerLayout from "./pages/seller/SallerLayout";
+import SellerLayout from "./pages/seller/SellerLayout";
 import AddProduct from "./pages/seller/AddProduct";
 import ProductList from "./pages/seller/ProductList";
 import Orders from "./pages/seller/Orders";
 
 const App = () => {
-  const isSellerpath = useLocation().pathname.includes("seller");
+  const location = useLocation();
+  const isSellerpath = location.pathname.includes("seller");
 
   const { showUserLogin, isSeller } = useContext(AppContext);
 
@@ -30,10 +31,10 @@ const App = () => {
 
       {isSellerpath ? null : <Navbar />}
       {showUserLogin ? <Login /> : null}
-      <div
-        className={`${isSellerpath ? "" : "px-6 md:px-16 lg:px-24 xl:px-32"}`}
-      >
+      
+      <div className={`${isSellerpath ? "" : "px-6 md:px-16 lg:px-24 xl:px-32"}`}>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<AllProduct />} />
           <Route path="/category/:category" element={<ProductCategories />} />
@@ -41,11 +42,17 @@ const App = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/add-address" element={<AddAddress />} />
           <Route path="/my-orders" element={<Myorders />} />
-          <Route path="/seller/*" element={isSeller ?  <SellerLayout /> : <SellerLogin />} />
-          <Route index element = {isSeller ? <AddProduct /> : null} />
-          <Route path="product-list" element={isSeller ? <ProductList /> : null} />
-          <Route path="orders" element={isSeller ? <Orders /> : null} />
 
+          {/* Seller Routes - Nested properly */}
+          <Route
+            path="/seller/*"
+            element={isSeller ? <SellerLayout /> : <SellerLogin />}
+          >
+            {/* These are nested routes that render in <Outlet /> */}
+            <Route index element={<AddProduct />} />
+            <Route path="product-list" element={<ProductList />} />
+            <Route path="orders" element={<Orders />} />
+          </Route>
         </Routes>
 
         {!isSellerpath && <Footer />}

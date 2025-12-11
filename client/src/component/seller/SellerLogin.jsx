@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { assets } from "../../assets/assets";
 import { AppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const SellerLogin = () => {
   const { setIsSeller } = useContext(AppContext);
@@ -10,24 +11,47 @@ const SellerLogin = () => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("sellerToken");
-    if (token) {
-      setIsSeller(true);
-      // Navigate to seller dashboard
-      navigate("/seller");
+    // Safe localStorage access with try-catch
+    try {
+      const token = localStorage.getItem("sellerToken");
+      if (token) {
+        setIsSeller(true);
+        navigate("/seller");
+      }
+    } catch (error) {
+      // Continue without localStorage - app will still work
     }
   }, [navigate, setIsSeller]);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
-    // TODO: Add actual authentication logic here
-    setIsSeller(true);
-    localStorage.setItem("sellerToken", "dummy-token");
-    navigate("/seller");
+    
+    // Validate inputs
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    // Mock authentication - replace with real API call
+    try {
+      setIsSeller(true);
+      
+      // Try to save token, but don't fail if localStorage is blocked
+      try {
+        localStorage.setItem("sellerToken", "dummy-token");
+      } catch (storageError) {
+        // Silent fail - app works without localStorage
+      }
+      
+      toast.success("Login successful!");
+      navigate("/seller");
+    } catch (error) {
+      toast.error("Login failed. Please try again.");
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
+    <div className="min-h-screen no-scrollbar flex items-center justify-center px-4 py-8 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex flex-col lg:flex-row">
           {/* Left panel: logo + title */}
@@ -57,7 +81,7 @@ const SellerLogin = () => {
                 Please enter your credentials to continue
               </p>
 
-              <div className="space-y-6">
+              <form onSubmit={onSubmitHandler} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Email Address
@@ -66,7 +90,7 @@ const SellerLogin = () => {
                     required
                     type="email"
                     placeholder="your@email.com"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-gray-400"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -79,8 +103,8 @@ const SellerLogin = () => {
                   <input
                     required
                     type="password"
-                    placeholder="**************"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                    placeholder="••••••••••••"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-gray-400"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -88,8 +112,7 @@ const SellerLogin = () => {
 
                 <button
                   type="submit"
-                  onClick={onSubmitHandler}
-                  className="w-full bg-primary hover:bg-primary-dark cursor-pointer text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="w-full bg-primary hover:bg-primary-dull cursor-pointer text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   Sign In
                 </button>
@@ -98,10 +121,19 @@ const SellerLogin = () => {
                   <a
                     href="#"
                     className="text-sm text-primary hover:underline"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toast.info("Password reset functionality coming soon!");
+                    }}
                   >
                     Forgot your password?
                   </a>
                 </div>
+              </form>
+
+              <div className="mt-6 text-center text-sm text-gray-500">
+                <p>Demo Credentials:</p>
+                <p className="text-primary">admin@zipbasket.com / admin123</p>
               </div>
             </div>
           </div>

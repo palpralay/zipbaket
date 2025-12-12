@@ -3,11 +3,13 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import connectDB from './configs/db.js';
+import userRoutes from './routes/userRoutes.js';
+import sellerRoutes from './routes/sellerRoute.js';
 
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const allowOrigins = ['http://localhost:5173'];
+const allowedOrigins = ['http://localhost:5173'];
 
 
 try {
@@ -20,15 +22,16 @@ try {
 //middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({origin: allowOrigins, credentials: true}));
+app.use(cors({origin: allowedOrigins, credentials: true}));
 app.use(express.urlencoded({ extended: true }));
-
-
 
 
 app.get('/', (req, res) => {
     res.send('Hello, World!');
 });
+
+app.use('/api/users', userRoutes);
+app.use('/api/sellers', sellerRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

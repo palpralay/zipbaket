@@ -1,6 +1,7 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { assets } from "../../assets/assets";
+import axios from "axios";
 
 const AddProduct = () => {
   const [files, setFiles] = useState([]);
@@ -13,37 +14,142 @@ const AddProduct = () => {
   const [addCategory, setAddCategory] = useState("");
   const [categoryImage, setCategoryImage] = useState(null);
 
-  // Define available categories
-  const [categories, setCategories] = useState([
-    { path: "Organic Veggies" },
-    { path: "Fresh Fruits" },
-    { path: "Cold Drinks" },
-    { path: "Instant Food" },
-    { path: "Dairy Products" },
-    { path: "Bakery & Breads" },
-    { path: "Grains & Cereals" },
-  ]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  // Cleanup object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      files.forEach((file) => {
+        if (file) URL.revokeObjectURL(URL.createObjectURL(file));
+      });
+    };
+  }, [files]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:4000/api/product/categories"
+      );
+      if (response.data.success) {
+        setCategories(
+          response.data.categories.map((cat) => ({
+            path: cat.name,
+            image: cat.image,
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
 
   // Handle adding new category
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (addCategory.trim() && categoryImage) {
       if (!categories.find((cat) => cat.path === addCategory)) {
-        setCategories([
-          ...categories,
-          {
-            path: addCategory,
-            image: URL.createObjectURL(categoryImage),
-          },
-        ]);
-        setCategory(addCategory);
-        setAddCategory("");
-        setCategoryImage(null);
+        try {
+          const formData = new FormData();
+          formData.append("name", addCategory);
+          formData.append("image", categoryImage);
+
+          const response = await axios.post(
+            "http://localhost:4000/api/product/add-category",
+            formData
+          );
+
+          if (response.data.success) {
+            const newCategory = {
+              path: response.data.category.name,
+              image: response.data.category.image,
+            };
+            setCategories([...categories, newCategory]);
+            setCategory(addCategory);
+            setAddCategory("");
+            setCategoryImage(null);
+          }
+        } catch (error) {
+          console.error("Error adding category:", error);
+          alert(error.response?.data?.message || "Failed to add category");
+        }
+      } else {
+        alert("Category already exists");
       }
     }
   };
 
-  const onSubmitHandler = (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
+
+    // Validate images
+    const uploadedImages = files.filter((file) => file !== undefined);
+    if (uploadedImages.length === 0) {
+      alert("Please upload at least one product image");
+      return;
+    }
+
+    // Validate required fields
+    if (
+      !name.trim() ||
+      !description.trim() ||
+      !category ||
+      !price ||
+      !offerPrice
+    ) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const formData = new FormData();
+
+      // Append product data as JSON string
+      const productData = {
+        name,
+        description,
+        category,
+        price: Number(price),
+        offerPrice: Number(offerPrice),
+      };
+      formData.append("productData", JSON.stringify(productData));
+
+      // Append images
+      uploadedImages.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      const response = await axios.post(
+        "http://localhost:4000/api/product/add-product",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        alert("Product added successfully!");
+        // Reset form
+        setFiles([]);
+        setName("");
+        setDescription("");
+        setCategory("");
+        setPrice("");
+        setOfferPrice("");
+      }
+    } catch (error) {
+      console.error("Error adding product:", error);
+      alert(error.response?.data?.message || "Failed to add product");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -225,8 +331,12 @@ const AddProduct = () => {
             />
           </div>
         </div>
-        <button className="px-8 w-full py-2.5 bg-primary cursor-pointer text-white font-medium rounded">
-          ADD
+        <button
+          type="submit"
+          disabled={loading}
+          className="px-8 w-full py-2.5 bg-primary cursor-pointer text-white font-medium rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          {loading ? "Adding..." : "ADD"}
         </button>
       </form>
     </div>

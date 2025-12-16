@@ -5,6 +5,9 @@ import cookieParser from 'cookie-parser';
 import connectDB from './configs/db.js';
 import userRoutes from './routes/userRoutes.js';
 import sellerRoutes from './routes/sellerRoute.js';
+import connectCloudinary from './configs/cloudinary.js';
+import productsRoutes from './routes/productsRoutes.js';
+
 
 
 const app = express();
@@ -14,6 +17,7 @@ const allowedOrigins = ['http://localhost:5173'];
 
 try {
     await connectDB();
+    await connectCloudinary();  
 } catch (error) {
     console.error('Database connection failed:', error);
     process.exit(1);
@@ -32,6 +36,9 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/sellers', sellerRoutes);
+app.use('/api/product', productsRoutes);
+
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

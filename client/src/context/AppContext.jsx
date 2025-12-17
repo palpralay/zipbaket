@@ -1,9 +1,14 @@
 import { createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { dummyProducts } from "../assets/assets";
 import { useEffect } from "react";
 import { toast } from "react-hot-toast";
+import axios from "axios";
+// import { useAppContext } from "./AppContext";
+
+
+axios.defaults.withCredentials = true; // Allow cookies to be sent with requests
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 
 export const AppContext = createContext();
 
@@ -18,12 +23,78 @@ export const AppContextProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchProducts = async () => {
-    setProducts(dummyProducts);
+    try {
+      const { data } = await axios.get("/api/products/list");
+      if(data.success){
+        setProducts(data.products);
+
+      }else {
+        toast.error("Failed to fetch products");
+      }
+      
+    } catch (error) {
+     toast.error("Failed to fetch products: " + (error.response?.data?.message || error.message)); 
+    }
+  };
+
+  const fetchSeller = async () => {
+    try {
+      const { data } = await axios.get("/api/sellers/isSellerAuth", {
+        validateStatus: (status) => status < 500 // Don't throw error for 401
+      });
+      if (data.success) {
+        setIsSeller(true);
+      }
+      else {
+        setIsSeller(false);
+      }
+    } catch (error) {
+      // Only catch server errors (5xx)
+      setIsSeller(false);
+      console.error("Error fetching seller status:", error);
+    }
+  };
+
+  const fetchUser = async () => {
+    try {
+      const { data } = await axios.get("/api/users/isAuth", {
+        validateStatus: (status) => status < 500 // Don't throw error for 401
+      });
+      if (data.success) {
+        setUser(data.user);
+        setCartItems(data.user.cartItem || {});
+      }
+      else {
+        setUser(null);
+      }
+    } catch (error) {
+      // Only catch server errors (5xx)
+      setUser(null);
+      console.error("Error fetching user status:", error);
+    }
   };
 
   useEffect(() => {
     fetchProducts();
+    fetchSeller();
+    fetchUser();
   }, []);
+
+  useEffect(() => {
+    console.log("Cart Items Updated:", cartItems);
+    const updateCartOnServer = async () => {
+      if (user) {
+        try {
+          await axios.post("/api/users/updateCart", {
+            cartItem: cartItems,
+          });
+        } catch (error) {
+          console.error("Failed to update cart on server:", error);
+        }
+      }
+    };
+    updateCartOnServer();
+  }, [cartItems]);
 
   const addToCart = (itemId) => {
     let cardData = structuredClone(cartItems);
@@ -102,6 +173,7 @@ export const AppContextProvider = ({ children }) => {
     products,
     setProducts,
     fetchProducts,
+    fetchUser,
     currency,
     cartItems,
     setCartItems,
@@ -112,6 +184,7 @@ export const AppContextProvider = ({ children }) => {
     setSearchQuery,
     getCartCount,
     getCartTotal,
+    axios,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

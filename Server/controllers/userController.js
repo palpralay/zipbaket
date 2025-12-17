@@ -37,7 +37,7 @@ export const register = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true, //prevent javascript to access the cookie
       secure: process.env.NODE_ENV === "production", //cookie only sent over https
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "Strict", //cross-site cookie
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", //cross-site cookie
       maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: 7 days
     });
 
@@ -46,7 +46,8 @@ export const register = async (req, res) => {
       user: {
         email: user.email,
         name: user.name,
-        id: user._id,
+        _id: user._id,
+        cartItem: user.cartItem || {},
       },
     });
   } catch (error) {
@@ -83,7 +84,7 @@ export const login = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true, //prevent javascript to access the cookie
       secure: process.env.NODE_ENV === "production", //cookie only sent over https
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "Strict", //cross-site cookie
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", //cross-site cookie
       maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: 7 days
     });
 
@@ -92,7 +93,8 @@ export const login = async (req, res) => {
       user: {
         email: user.email,
         name: user.name,
-        id: user._id,
+        _id: user._id,
+        cartItem: user.cartItem || {},
       },
     });
   } catch (error) {
@@ -120,7 +122,7 @@ export const logout = async (req, res) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "Strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
     return res
       .status(200)

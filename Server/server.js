@@ -7,6 +7,9 @@ import userRoutes from './routes/userRoutes.js';
 import sellerRoutes from './routes/sellerRoute.js';
 import connectCloudinary from './configs/cloudinary.js';
 import productsRoutes from './routes/productsRoutes.js';
+import cartRouter from './routes/cartRoutes.js';
+import addressRoutes from './routes/addresssRouter.js';
+import orderRoute from './controllers/orderRoute.js';
 
 
 
@@ -36,7 +39,11 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/sellers', sellerRoutes);
-app.use('/api/product', productsRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/cart', cartRouter);
+app.use('/api/address', addressRoutes);
+app.use('/api/orders', orderRoute);
+
 
 
 

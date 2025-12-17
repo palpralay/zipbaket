@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { assets } from "../assets/assets";
+import toast from "react-hot-toast";
+import { useAppContext } from "../context/AppContext";
 
 const AddAddress = () => {
+  const { axios, navigate } = useAppContext();
   const [address, setAddress] = React.useState({
     firstName: "",
     lastName: "",
@@ -20,10 +23,48 @@ const AddAddress = () => {
   };
 
   const onSubmitHandel = async (e) => {
-    e.preventDefault();
-    console.log("Address submitted:", address);
-    // Add your submission logic here
+    try {
+      e.preventDefault();
+      const addressData = {
+        firstName: address.firstName,
+        lastName: address.lastName,
+        email: address.email,
+        phoneNumber: address.phone,
+        streetAddress: address.street,
+        city: address.city,
+        state: address.state,
+        zipCode: address.zipCode,
+        country: address.country,
+      };
+      
+      const { data } = await axios.post("/api/address/add", { address: addressData });
+      if (data.success) {
+        toast.success(data.message);
+        setAddress({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          street: "",
+          city: "",
+          state: "",
+          zipCode: "",
+          country: "",
+        });
+        toast.success("Address added successfully");
+        navigate("/");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    }
   };
+
+useEffect(() => {
+    if(!user)
+      navigate("/login");
+  }, []);
 
   const InputField = ({ type, placeholder, name, handelchange, address }) => (
     <input

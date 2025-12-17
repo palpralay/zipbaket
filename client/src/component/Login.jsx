@@ -1,10 +1,14 @@
 import React from "react";
 import { useAppContext } from "../context/AppContext";
+import { toast } from "react-hot-toast";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [state, setState] = React.useState("login");
+  const navigate = useNavigate();
 
-  const { setShowUserLogin, setUser } = useAppContext();
+  const { setShowUserLogin, setUser, setCartItems } = useAppContext();
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -14,12 +18,27 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setUser({
-      email: "abc@gmail.com",
-      name: "abc",
-    });
-    setShowUserLogin(false);
-    toast.success("User logged in successfully");
+    try {
+      const { data } = await axios.post(`/api/users/${state}`, {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+      
+      if (data.success) {
+        toast.success(state === "login" ? "User logged in successfully" : "User registered successfully");
+        setUser(data.user);
+        setCartItems(data.user.cartItem || {});
+        setShowUserLogin(false);
+        navigate("/");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(
+        `${state === "login" ? "Login" : "Registration"} failed: ` + (error.response?.data?.message || error.message)
+      );
+    }
   };
 
   const handleChange = (e) => {

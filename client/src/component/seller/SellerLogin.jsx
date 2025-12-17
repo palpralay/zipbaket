@@ -3,6 +3,7 @@ import { assets } from "../../assets/assets";
 import { AppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import axios from "axios";
 
 const SellerLogin = () => {
   const { setIsSeller } = useContext(AppContext);
@@ -11,44 +12,32 @@ const SellerLogin = () => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    // Safe localStorage access with try-catch
     try {
       const token = localStorage.getItem("sellerToken");
       if (token) {
-        setIsSeller(true);
         navigate("/seller");
       }
     } catch (error) {
-      // Continue without localStorage - app will still work
+      console.error("LocalStorage access error:", error);
     }
   }, [navigate, setIsSeller]);
 
   const onSubmitHandler = async (e) => {
-    e.preventDefault();
-    
-    // Validate inputs
-    if (!email || !password) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
-    // Mock authentication - replace with real API call
     try {
-      setIsSeller(true);
-      
-      // Try to save token, but don't fail if localStorage is blocked
-      try {
-        localStorage.setItem("sellerToken", "dummy-token");
-      } catch (storageError) {
-        // Silent fail - app works without localStorage
+      e.preventDefault();
+      const {data}= await axios.post("/seller/login", { email, password });
+      if (data.success) {
+        setIsSeller(true);
+        navigate("/seller");
+      } else {
+        toast.error(data.message);
       }
       
-      toast.success("Login successful!");
-      navigate("/seller");
     } catch (error) {
-      toast.error("Login failed. Please try again.");
+        toast.error(error.message);
+      
     }
-  };
+  }
 
   return (
     <div className="min-h-screen no-scrollbar flex items-center justify-center px-4 py-8 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">

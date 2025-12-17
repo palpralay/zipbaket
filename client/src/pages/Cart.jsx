@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAppContext } from "../context/AppContext";
-import { assets, dummyAddress } from "../assets/assets";
+import { assets } from "../assets/assets";
 import { toast } from "../utils/toast";
+import axios from "axios";
 
 const Cart = () => {
   const [showAddress, setShowAddress] = useState(false);
@@ -13,14 +14,37 @@ const Cart = () => {
     currency,
     updatecartItem,
     navigate,
+    user,
+    setCartItems,
   } = useAppContext();
   const [cartArray, setCartArray] = useState([]);
-  const [selectAddress, setSelectedAddress] = useState(
-    dummyAddress && dummyAddress.length > 0 ? dummyAddress[0] : null
-  );
-  const [paymentOption, setPaymentOption] = useState("cod");
+  const [address, setAddress] = useState([]);
+  const [selectAddress, setSelectedAddress] = useState(null);
+  const [paymentOption, setPaymentOption] = useState("COD");
 
-  const getCart = () => {
+  const getUserAddress = useCallback(async () => {
+    try {
+      const { data } = await axios.get("/api/address/get");
+      if (data.success) {
+        setAddress(data.addresses);
+        if (data.addresses && data.addresses.length > 0) {
+          setSelectedAddress(data.addresses[0]);
+        }
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      getUserAddress();
+    }
+  }, [user, getUserAddress]);
+
+  const getCart = useCallback(() => {
     let tempArray = [];
     for (const key in cartItems) {
       const productItem = products.find((item) => item._id === key);
@@ -30,20 +54,13 @@ const Cart = () => {
       }
     }
     setCartArray(tempArray);
-  };
+  }, [cartItems, products]);
 
   useEffect(() => {
     if (products.length > 0 && cartItems) {
       getCart();
     }
-  }, [products, cartItems]);
-
-  // Calculate subtotal
-  const getSubtotal = () => {
-    return cartArray.reduce((total, item) => {
-      return total + item.offerPrice * item.quantity;
-    }, 0);
-  };
+  }, [products, cartItems, getCart]);
 
   // Calculate tax (2%)
   const getTax = () => {
@@ -63,19 +80,31 @@ const Cart = () => {
     updatecartItem(productId, 0);
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectAddress) {
       toast.error("Please select a delivery address");
       return;
     }
-    // Add your order placement logic here
-    console.log("Order placed with:", {
-      items: cartArray,
-      address: selectAddress,
-      payment: paymentOption,
-      total: getTotal(),
-    });
-    toast.success("Order placed successfully!");
+    try {
+      if (paymentOption === "COD") {
+        const { data } = await axios.post("/api/orders/place", {
+          items: cartArray.map((item) => ({
+            product: item._id,
+            quantity: item.quantity,
+            address: selectAddress._id,
+          })),
+        });
+        if (data.success) {
+          toast.success("Order placed successfully!");
+          setCartItems({});
+          navigate("/myorder");
+        } else {
+          toast.error(data.message);
+        }
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   // Empty cart state
@@ -121,7 +150,7 @@ const Cart = () => {
         </div>
 
         {/* Cart Items */}
-        {cartArray.map((product, index) => (
+        {cartArray.map((product) => (
           <div
             key={product._id}
             className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] text-gray-500 items-center text-sm md:text-base font-medium py-4 border-b border-gray-200 gap-4 md:gap-0"
@@ -135,7 +164,7 @@ const Cart = () => {
                   );
                   scrollTo(0, 0);
                 }}
-                className="cursor-pointer w-20 h-20 md:w-24 md:h-24 flex-shrink-0 flex items-center justify-center border border-gray-300 rounded overflow-hidden hover:border-primary transition"
+                className="cursor-pointer w-20 h-20 md:w-24 md:h-24 shrink-0 flex items-center justify-center border border-gray-300 rounded overflow-hidden hover:border-primary transition"
               >
                 <img
                   className="max-w-full h-full object-cover"
@@ -238,7 +267,7 @@ const Cart = () => {
               </p>
               <button
                 onClick={() => setShowAddress(!showAddress)}
-                className="text-primary hover:underline cursor-pointer text-sm font-medium flex-shrink-0"
+                className="text-primary hover:underline cursor-pointer text-sm font-medium shrink-0"
               >
                 Change
               </button>
@@ -247,18 +276,17 @@ const Cart = () => {
             {/* Address Dropdown */}
             {showAddress && (
               <div className="absolute top-8 left-0 right-0 z-10 py-1 bg-white border border-gray-300 rounded shadow-lg text-sm max-h-60 overflow-y-auto">
-                {dummyAddress && dummyAddress.length > 0 ? (
-                  dummyAddress.map((address, index) => (
+                {address && address.length > 0 ? (
+                  address.map((addr, index) => (
                     <p
                       key={index}
                       onClick={() => {
-                        setSelectedAddress(address);
+                        setSelectedAddress(addr);
                         setShowAddress(false);
                       }}
                       className="text-gray-600 p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0"
                     >
-                      {address.street}, {address.city}, {address.state},{" "}
-                      {address.country}
+                      {addr.street}, {addr.city}, {addr.state}, {addr.country}
                     </p>
                   ))
                 ) : (

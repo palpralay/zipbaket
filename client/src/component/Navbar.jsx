@@ -3,6 +3,8 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { useAppContext } from "../context/AppContext";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -16,8 +18,17 @@ const Navbar = () => {
     getCartCount,
   } = useAppContext();
   const logout = async () => {
-    setUser(null);
-    navigate("/");
+   try {
+    const { data } = await axios.post("/api/users/logout");
+    if (data.success) {
+      toast.success("Logged out successfully");
+      setUser(null);
+      navigate("/");
+    }
+   } catch (error) {
+    toast.error("Logout failed");
+    console.error("Logout failed:", error);
+   }
   };
   useEffect(() => {
     if (searchQuery.length > 0) {

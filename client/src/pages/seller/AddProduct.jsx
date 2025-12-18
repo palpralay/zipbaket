@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { assets } from "../../assets/assets";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
@@ -17,90 +16,63 @@ const AddProduct = () => {
   const [categoryImage, setCategoryImage] = useState(null);
 
   const defaultCategories = [
-    { path: "BAKERY & BREADS", image: null },
-    { path: "ORGANIC VEGGIES", image: null },
-    { path: "FRESH FRUITS", image: null },
-    { path: "COLD DRINKS", image: null },
-    { path: "INSTANT FOOD", image: null },
-    { path: "DAIRY PRODUCTS", image: null },
-    { path: "GRAINS & CEREALS", image: null },
+    "Vegetables",
+    "Fruits",
+    "Drinks",
+    "Instant",
+    "Dairy",
+    "Bakery",
+    "Grains",
   ];
 
   const [categories, setCategories] = useState(defaultCategories);
   const [loading, setLoading] = useState(false);
 
-  // Fetch categories on component mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  // Cleanup object URLs to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      files.forEach((file) => {
-        if (file) URL.revokeObjectURL(URL.createObjectURL(file));
-      });
-    };
-  }, [files]);
-
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(
-        "/api/products/categories"
-      );
-      if (response.data.success && response.data.categories.length > 0) {
-        const apiCategories = response.data.categories.map((cat) => ({
-          path: cat.name,
-          image: cat.image,
-        }));
-        // Merge with defaults, avoiding duplicates
-        const merged = [...defaultCategories];
-        apiCategories.forEach((apiCat) => {
-          if (!merged.find((c) => c.path === apiCat.path)) {
-            merged.push(apiCat);
-          }
-        });
+      const { data } = await axios.get("/api/products/categories");
+      if (data.success && data.categories?.length > 0) {
+        const categoryNames = data.categories.map((cat) => cat.name);
+        const merged = [...new Set([...defaultCategories, ...categoryNames])];
         setCategories(merged);
       }
-      // If API fails or returns empty, keep default categories
     } catch (error) {
       console.error("Error fetching categories:", error);
-      // Keep default categories on error
+      toast.error("Failed to fetch categories");
     }
   };
 
-  // Handle adding new category
   const handleAddCategory = async () => {
-    if (addCategory.trim() && categoryImage) {
-      if (!categories.find((cat) => cat.path === addCategory)) {
-        try {
-          const formData = new FormData();
-          formData.append("name", addCategory);
-          formData.append("image", categoryImage);
+    if (!addCategory.trim()) {
+      toast.error("Please enter category name");
+      return;
+    }
+    if (!categoryImage) {
+      toast.error("Please select an image");
+      return;
+    }
 
-          const response = await axios.post(
-            "/api/products/add-category",
-            formData
-          );
+    try {
+      const formData = new FormData();
+      formData.append("name", addCategory);
+      formData.append("image", categoryImage);
 
-          if (response.data.success) {
-            const newCategory = {
-              path: response.data.category.name,
-              image: response.data.category.image,
-            };
-            setCategories([...categories, newCategory]);
-            setCategory(addCategory);
-            setAddCategory("");
-            setCategoryImage(null);
-            toast.success("Category added successfully!");
-          }
-        } catch (error) {
-          console.error("Error adding category:", error);
-          toast.error(error.response?.data?.message || "Failed to add category");
-        }
-      } else {
-        toast.error("Category already exists");
+      const { data } = await axios.post("/api/products/add-category", formData);
+
+      if (data.success) {
+        setCategories([...categories, addCategory]);
+        setCategory(addCategory);
+        setAddCategory("");
+        setCategoryImage(null);
+        toast.success("Category added successfully!");
       }
+    } catch (error) {
+      console.error("Error adding category:", error);
+      toast.error(error.response?.data?.message || "Failed to add category");
     }
   };
 
@@ -108,21 +80,20 @@ const AddProduct = () => {
     e.preventDefault();
 
     // Validate images
-    const uploadedImages = files.filter((file) => file !== undefined);
+    const uploadedImages = files.filter((file) => file);
     if (uploadedImages.length === 0) {
       toast.error("Please upload at least one product image");
       return;
     }
 
     // Validate required fields
-    if (
-      !name.trim() ||
-      !description.trim() ||
-      !category ||
-      !price ||
-      !offerPrice
-    ) {
+    if (!name.trim() || !description.trim() || !category || !price || !offerPrice) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (parseFloat(offerPrice) > parseFloat(price)) {
+      toast.error("Offer price cannot be greater than original price");
       return;
     }
 
@@ -130,44 +101,46 @@ const AddProduct = () => {
       setLoading(true);
       const formData = new FormData();
 
-      // Append product data as JSON string
+      // Convert description into array of strings
+      const descriptionArray = description
+        .split("\n")
+        .filter((line) => line.trim());
+
       const productData = {
-        name,
-        description,
-        category,
-        price: Number(price),
-        offerPrice: Number(offerPrice),
+        name: name.trim(),
+        description: descriptionArray.length > 0 ? descriptionArray : [description.trim()],
+        category: category.trim(),
+        price: parseFloat(price),
+        offerPrice: parseFloat(offerPrice),
       };
+
       formData.append("productData", JSON.stringify(productData));
 
-      // Append images
+      // Append only non-null images
       uploadedImages.forEach((file) => {
-        formData.append("images", file);
+        if (file) formData.append("images", file);
       });
 
-      const response = await axios.post(
-        "/api/products/add-product",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const { data } = await axios.post("/api/products/add-product", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true
+      });
 
-      if (response.data.success) {
+      if (data.success) {
         toast.success("Product added successfully!");
-        // Reset form
         setFiles([]);
         setName("");
         setDescription("");
         setCategory("");
         setPrice("");
         setOfferPrice("");
+      } else {
+        toast.error(data.message || "Failed to add product");
       }
     } catch (error) {
       console.error("Error adding product:", error);
-      toast.error(error.response?.data?.message || "Failed to add product");
+      const errorMsg = error.response?.data?.message || error.message;
+      toast.error(`Failed to add product: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -175,138 +148,136 @@ const AddProduct = () => {
 
   return (
     <div className="no-scrollbar flex-1 flex flex-col h-[80vh] justify-between">
-      <form
-        onSubmit={onSubmitHandler}
-        className="md:px-10 md:py-4 p-4 space-y-5 max-w-lg"
-      >
+      <form onSubmit={onSubmitHandler} className="md:px-10 md:py-4 p-4 space-y-5 max-w-lg">
+        {/* Product Images */}
         <div>
-          <p className="text-base font-medium">Product Image</p>
+          <p className="text-base font-medium">Product Image (Upload at least 1)</p>
           <div className="flex flex-wrap items-center gap-3 mt-2">
             {Array(4)
               .fill("")
               .map((_, index) => (
-                <label key={index} htmlFor={`image${index}`}>
+                <label key={index} htmlFor={`image${index}`} className="cursor-pointer">
                   <input
                     onChange={(e) => {
-                      const updatedFiles = [...files];
-                      updatedFiles[index] = e.target.files[0];
-                      setFiles(updatedFiles);
+                      const newFiles = [...files];
+                      newFiles[index] = e.target.files[0];
+                      setFiles(newFiles);
                     }}
                     accept="image/*"
                     type="file"
                     id={`image${index}`}
                     hidden
                   />
-                  <img
-                    src={
-                      files[index]
-                        ? URL.createObjectURL(files[index])
-                        : assets.upload_area
-                    }
-                    className="w-24 h-24 cursor-pointer object-cover rounded border border-dashed border-gray-300"
-                    alt=""
-                  />
+                  <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded flex items-center justify-center overflow-hidden hover:border-primary transition">
+                    {files[index] ? (
+                      <img
+                        src={URL.createObjectURL(files[index])}
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={assets.upload_area}
+                        alt="upload"
+                        className="w-12 h-12 opacity-50"
+                      />
+                    )}
+                  </div>
                 </label>
               ))}
           </div>
+          <p className="text-xs text-gray-500 mt-2">
+            {files.filter((f) => f).length} image(s) selected
+          </p>
         </div>
-        <div className="flex flex-col gap-1 max-w-md w-full">
-          <label className="text-base font-medium" htmlFor="product-name">
-            Product Name
+
+        {/* Product Name */}
+        <div className="flex flex-col gap-1">
+          <label htmlFor="name" className="text-base font-medium">
+            Product Name *
           </label>
           <input
-            onChange={(e) => {
-              setName(e.target.value);
-            }}
-            value={name}
-            id="product-name"
+            id="name"
             type="text"
-            placeholder="Type here"
-            className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+            placeholder="e.g., Fresh Tomato 1kg"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 focus:border-primary transition"
             required
           />
         </div>
-        <div className="flex flex-col gap-1 max-w-md w-full">
-          <label
-            className="text-base font-medium"
-            htmlFor="product-description"
-          >
-            Product Description
+
+        {/* Description */}
+        <div className="flex flex-col gap-1">
+          <label htmlFor="description" className="text-base font-medium">
+            Description (One per line) *
           </label>
           <textarea
-            onChange={(e) => {
-              setDescription(e.target.value);
-            }}
-            value={description}
-            id="product-description"
+            id="description"
             rows={4}
-            className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 resize-none"
-            placeholder="Type here"
-          ></textarea>
+            placeholder="Line 1&#10;Line 2&#10;Line 3"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 focus:border-primary transition resize-none"
+            required
+          />
         </div>
-        <div className="w-full flex flex-col gap-1">
-          <label className="text-base font-medium" htmlFor="category">
-            Category
+
+        {/* Category Selection */}
+        <div className="flex flex-col gap-1">
+          <label htmlFor="category" className="text-base font-medium">
+            Category *
           </label>
           <select
-            onChange={(e) => setCategory(e.target.value)}
-            value={category}
             id="category"
-            className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 focus:border-primary transition bg-white"
+            required
           >
-            <option value="">Select Category</option>
-            {categories.map((item, idx) => (
-              <option key={idx} value={item.path}>
-                {item.path}
-              </option>
-            ))}
-          </select>
-
-          {/* Display selected category with image */}
-          {category &&
-            categories.find((cat) => cat.path === category)?.image && (
-              <div className="mt-3 flex items-center gap-3 p-3 bg-gray-100 rounded">
-                <img
-                  src={categories.find((cat) => cat.path === category)?.image}
-                  alt={category}
-                  className="w-12 h-12 object-cover rounded"
-                />
-                <span className="text-sm font-medium">{category}</span>
-              </div>
+            <option value="">-- Select Category --</option>
+            {categories && categories.length > 0 ? (
+              categories.map((cat, idx) => (
+                <option key={idx} value={cat}>
+                  {cat}
+                </option>
+              ))
+            ) : (
+              <option disabled>No categories available</option>
             )}
+          </select>
         </div>
 
-        {/* Add new category section */}
-        <div className="mt-4 p-4 border border-gray-300 rounded">
-          <p className="text-sm font-medium mb-2">Add New Category</p>
+        {/* Add New Category */}
+        <div className="mt-4 p-4 border border-gray-300 rounded bg-gray-50">
+          <p className="text-sm font-medium mb-3">Or Add New Category</p>
           <div className="flex flex-col gap-3">
             <input
-              onChange={(e) => setAddCategory(e.target.value)}
-              value={addCategory}
               type="text"
               placeholder="Category name"
-              className="outline-none py-2 px-3 rounded border border-gray-500/40"
+              value={addCategory}
+              onChange={(e) => setAddCategory(e.target.value)}
+              className="outline-none py-2 px-3 rounded border border-gray-500/40 focus:border-primary transition"
             />
 
             <div className="flex items-center gap-3">
-              <label htmlFor="category-image" className="cursor-pointer">
+              <label htmlFor="catImage" className="cursor-pointer">
                 <input
-                  onChange={(e) => setCategoryImage(e.target.files[0])}
-                  accept="image/*"
+                  id="catImage"
                   type="file"
-                  id="category-image"
+                  accept="image/*"
+                  onChange={(e) => setCategoryImage(e.target.files[0])}
                   hidden
                 />
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-                  <span className="text-sm">Choose Image</span>
+                <div className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition text-sm font-medium">
+                  Choose Image
                 </div>
               </label>
-
               {categoryImage && (
                 <img
                   src={URL.createObjectURL(categoryImage)}
-                  alt="Category preview"
-                  className="w-12 h-12 object-cover rounded"
+                  alt="cat"
+                  className="w-12 h-12 object-cover rounded border"
                 />
               )}
             </div>
@@ -315,49 +286,56 @@ const AddProduct = () => {
               type="button"
               onClick={handleAddCategory}
               disabled={!addCategory.trim() || !categoryImage}
-              className="px-4 py-2 bg-primary text-white rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
             >
               Add Category
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-5 flex-wrap">
-          <div className="flex flex-col gap-1 w-32">
-            <label className="text-base font-medium" htmlFor="product-price">
-              Product Price
+        {/* Price Section */}
+        <div className="flex items-center gap-5">
+          <div className="flex flex-col gap-1 flex-1">
+            <label htmlFor="price" className="text-base font-medium">
+              Original Price *
             </label>
             <input
-              onChange={(e) => setPrice(e.target.value)}
-              value={price}
-              id="product-price"
+              id="price"
               type="number"
               placeholder="0"
-              className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              min="0"
+              step="0.01"
+              className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 focus:border-primary transition"
               required
             />
           </div>
-          <div className="flex flex-col gap-1 w-32">
-            <label className="text-base font-medium" htmlFor="offer-price">
-              Offer Price
+          <div className="flex flex-col gap-1 flex-1">
+            <label htmlFor="offerPrice" className="text-base font-medium">
+              Offer Price *
             </label>
             <input
-              onChange={(e) => setOfferPrice(e.target.value)}
-              value={offerPrice}
-              id="offer-price"
+              id="offerPrice"
               type="number"
               placeholder="0"
-              className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+              value={offerPrice}
+              onChange={(e) => setOfferPrice(e.target.value)}
+              min="0"
+              step="0.01"
+              className="w-full outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 focus:border-primary transition"
               required
             />
           </div>
         </div>
+
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className="px-8 w-full py-2.5 bg-primary cursor-pointer text-white font-medium rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="px-8 w-full py-2.5 bg-primary cursor-pointer text-white font-medium rounded hover:bg-primary/90 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
         >
-          {loading ? "Adding..." : "ADD"}
+          {loading ? "Adding Product..." : "Add Product"}
         </button>
       </form>
     </div>

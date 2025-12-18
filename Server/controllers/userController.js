@@ -106,14 +106,17 @@ export const login = async (req, res) => {
 //check authenticated user
 export const isAuth = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const user = await User.findById(userId).select("-password");
-    return res.status(200).json({ success: true, user });
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) {
+      return res.status(401).json({ success: false });
+    }
+
+    res.status(200).json({ success: true, user });
   } catch (error) {
-    console.error("Error in isAuth:", error);
-    res.status(500).json({ success: false, message: "Server Error" });
+    res.status(500).json({ success: false });
   }
 };
+
 
 
 //logout user

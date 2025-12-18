@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { useAppContext } from "../context/AppContext";
-import axios from "axios";
+import axios from "../utils/axios";
 
 const Myorders = () => {
   const [myOrders, setMyOrders] = useState([]);

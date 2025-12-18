@@ -3,7 +3,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { useAppContext } from "../context/AppContext";
-import axios from "axios";
+import axios from "../utils/axios";
 import { toast } from "react-hot-toast";
 
 const Navbar = () => {

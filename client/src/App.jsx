@@ -23,7 +23,7 @@ const App = () => {
   const location = useLocation();
   const isSellerpath = location.pathname.includes("seller");
 
-  const { showUserLogin, isSeller } = useContext(AppContext);
+  const { showUserLogin, isSeller, sellerLoading } = useContext(AppContext);
 
   return (
     <div className="text-default min-h-screen text-gray-700 bg-white">
@@ -31,8 +31,10 @@ const App = () => {
 
       {isSellerpath ? null : <Navbar />}
       {showUserLogin ? <Login /> : null}
-      
-      <div className={`${isSellerpath ? "" : "px-6 md:px-16 lg:px-24 xl:px-32"}`}>
+
+      <div
+        className={`${isSellerpath ? "" : "px-6 md:px-16 lg:px-24 xl:px-32"}`}
+      >
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
@@ -46,7 +48,13 @@ const App = () => {
           {/* Seller Routes - Nested properly */}
           <Route
             path="/seller/*"
-            element={isSeller ? <SellerLayout /> : <SellerLogin />}
+            element={
+              sellerLoading ? null : isSeller ? (
+                <SellerLayout />
+              ) : (
+                <SellerLogin />
+              )
+            }
           >
             {/* These are nested routes that render in <Outlet /> */}
             <Route index element={<AddProduct />} />

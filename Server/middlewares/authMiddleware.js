@@ -1,5 +1,3 @@
-//authUser is a middleware that protects backend routes by checking if the user is logged in using a JWT token stored in cookies.
-
 import jwt from "jsonwebtoken";
 
 export const authUser = async (req, res, next) => {
@@ -11,7 +9,7 @@ export const authUser = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.body.userId = decoded.id;
+    req.body.userId = decoded.id; // ✓ Set userId for use in controllers
     
     next();
   } catch (error) {
@@ -19,4 +17,5 @@ export const authUser = async (req, res, next) => {
     res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
-export default authUser;    
+
+export default authUser;

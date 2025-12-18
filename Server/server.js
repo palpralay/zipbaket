@@ -11,30 +11,41 @@ import cartRouter from './routes/cartRoutes.js';
 import addressRoutes from './routes/addresssRouter.js';
 import orderRoute from './controllers/orderRoute.js';
 
-
-
 const app = express();
 const PORT = process.env.PORT || 4000;
-const allowedOrigins = ['http://localhost:5173'];
 
+// ✓ IMPORTANT: Define allowed origins BEFORE middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173'
+];
 
 try {
-    await connectDB();
-    await connectCloudinary();  
+  await connectDB();
+  await connectCloudinary();
 } catch (error) {
-    console.error('Database connection failed:', error);
-    process.exit(1);
+  console.error('Database connection failed:', error);
+  process.exit(1);
 }
 
-//middleware
+// ✓ CORS with explicit credentials support
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true, // ✓ Allow credentials (cookies)
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
+}));
+
+// ✓ Body & Cookie parsing (order matters)
 app.use(express.json());
-app.use(cookieParser());
-app.use(cors({origin: allowedOrigins, credentials: true}));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-
+// Routes
 app.get('/', (req, res) => {
-    res.send('Hello, World!');
+  res.send('Hello, World!');
 });
 
 app.use('/api/users', userRoutes);
@@ -44,9 +55,6 @@ app.use('/api/cart', cartRouter);
 app.use('/api/address', addressRoutes);
 app.use('/api/orders', orderRoute);
 
-
-
-
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`✅ Server is running on port ${PORT}`);
 });

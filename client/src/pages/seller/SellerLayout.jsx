@@ -9,20 +9,21 @@ const SellerLayout = () => {
   const { setIsSeller, axios, navigate } = useAppContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const logout = async () => {
-    try {
-      const { data } = await axios.post("/api/seller/logout");
-      if (data.success) {
-        toast.success(data.message);
-        setIsSeller(false);
-        navigate("/");
-      } else {
-        toast.error("Logout failed. Please try again.");
-      }
-    } catch (error) {
+const logout = async () => {
+  try {
+    const { data } = await axios.post("/api/sellers/logout"); // ✓ Change from /api/seller/logout
+    if (data.success) {
+      toast.success(data.message);
+      setIsSeller(false);
+      navigate("/");
+    } else {
       toast.error("Logout failed. Please try again.");
     }
-  };
+  } catch (error) {
+    toast.error("Logout failed. Please try again.");
+    console.error("Logout error:", error);
+  }
+};
 
   const sidebarLinks = [
     { name: "Add Product", path: "/seller", icon: assets.add_icon },

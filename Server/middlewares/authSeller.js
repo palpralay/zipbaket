@@ -1,20 +1,29 @@
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 
-const authSeller = async (req, res, next) => {
-    const {sellerToken} = req.cookies;
+const authSeller = (req, res, next) => {
+  try {
+    const sellerToken = req.cookies?.sellerToken;
+
     if (!sellerToken) {
-        return res.status(401).json({ message: 'Unauthorized: No token provided' });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: No token provided" });
     }
-    try {
-        const decoded = jwt.verify(sellerToken, process.env.JWT_SECRET);
-       if(decoded.email === process.env.SELLER_EMAIL){
-           next();
-       }else{
-           return res.status(401).json({ message: 'Unauthorized: Invalid seller token' });
-       }
-    } catch (error) {
-        return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+
+    const decoded = jwt.verify(sellerToken, process.env.JWT_SECRET);
+
+    if (decoded.email !== process.env.SELLER_EMAIL) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized seller" });
     }
-}
+
+    next();
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Invalid seller token" });
+  }
+};
 
 export default authSeller;

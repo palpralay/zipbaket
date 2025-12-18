@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { toast } from "react-hot-toast";
 import axiosInstance from "../utils/axios";
+import axios from "../utils/axios";
 
 export const AppContext = createContext();
 
@@ -12,6 +13,7 @@ export const AppContextProvider = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isSeller, setIsSeller] = useState(false);
+  const [sellerLoading, setSellerLoading] = useState(true); 
   const [showUserLogin, setShowUserLogin] = useState(false);
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState({});
@@ -33,47 +35,51 @@ export const AppContextProvider = ({ children }) => {
   };
 
   const fetchSeller = async () => {
-    try {
-      const { data } = await axiosInstance.get("/api/sellers/isSellerAuth", {
-        validateStatus: (status) => status < 500 // Don't throw error for 401
-      });
-      if (data.success) {
-        setIsSeller(true);
-      }
-      else {
-        setIsSeller(false);
-      }
-    } catch (error) {
-      // Only catch server errors (5xx)
+   try {
+    setSellerLoading(true); // ✅ start loading
+
+    const { data } = await axios.get("/api/sellers/isSellerAuth");
+
+    if (data.success) {
+      setIsSeller(true);
+    } else {
       setIsSeller(false);
-      console.error("Error fetching seller status:", error);
     }
+  } catch (error) {
+    setIsSeller(false);
+  } finally {
+    setSellerLoading(false); // ✅ done loading
+  }
   };
 
   const fetchUser = async () => {
-    try {
-      const { data } = await axiosInstance.get("/api/users/isAuth", {
-        validateStatus: (status) => status < 500 // Don't throw error for 401
-      });
-      if (data.success) {
-        setUser(data.user);
-        setCartItems(data.user.cartItem || {});
-      }
-      else {
-        setUser(null);
-      }
-    } catch (error) {
-      // Only catch server errors (5xx)
+  try {
+    const { data } = await axiosInstance.get("/api/users/isAuth", {
+      validateStatus: (status) => status < 500
+    });
+    if (data.success) {
+      setUser(data.user);
+      setCartItems(data.user.cartItem || {});
+    } else {
       setUser(null);
-      console.error("Error fetching user status:", error);
+      setCartItems({});
     }
-  };
+  } catch (error) {
+    setUser(null);
+    setCartItems({});
+    console.error("Error fetching user status:", error);
+  }
+};
 
   useEffect(() => {
-    fetchProducts();
-    fetchSeller();
-    fetchUser();
-  }, []);
+  fetchUser();
+  fetchSeller();
+}, []);
+
+useEffect(() => {
+  fetchProducts();
+}, []);
+
 
   useEffect(() => {
     console.log("Cart Items Updated:", cartItems);
@@ -179,6 +185,7 @@ export const AppContextProvider = ({ children }) => {
     setSearchQuery,
     getCartCount,
     getCartTotal,
+    sellerLoading,
     axios: axiosInstance,
   };
 

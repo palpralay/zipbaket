@@ -3,12 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useEffect } from "react";
 import { toast } from "react-hot-toast";
-import axios from "axios";
-// import { useAppContext } from "./AppContext";
-
-
-axios.defaults.withCredentials = true; // Allow cookies to be sent with requests
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
+import axiosInstance from "../utils/axios";
 
 export const AppContext = createContext();
 
@@ -24,7 +19,7 @@ export const AppContextProvider = ({ children }) => {
 
   const fetchProducts = async () => {
     try {
-      const { data } = await axios.get("/api/products/list");
+      const { data } = await axiosInstance.get("/api/products/list");
       if(data.success){
         setProducts(data.products);
 
@@ -39,7 +34,7 @@ export const AppContextProvider = ({ children }) => {
 
   const fetchSeller = async () => {
     try {
-      const { data } = await axios.get("/api/sellers/isSellerAuth", {
+      const { data } = await axiosInstance.get("/api/sellers/isSellerAuth", {
         validateStatus: (status) => status < 500 // Don't throw error for 401
       });
       if (data.success) {
@@ -57,7 +52,7 @@ export const AppContextProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const { data } = await axios.get("/api/users/isAuth", {
+      const { data } = await axiosInstance.get("/api/users/isAuth", {
         validateStatus: (status) => status < 500 // Don't throw error for 401
       });
       if (data.success) {
@@ -85,7 +80,7 @@ export const AppContextProvider = ({ children }) => {
     const updateCartOnServer = async () => {
       if (user) {
         try {
-          await axios.post("/api/users/updateCart", {
+          await axiosInstance.post("/api/users/updateCart", {
             cartItem: cartItems,
           });
         } catch (error) {
@@ -184,7 +179,7 @@ export const AppContextProvider = ({ children }) => {
     setSearchQuery,
     getCartCount,
     getCartTotal,
-    axios,
+    axios: axiosInstance,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -1,20 +1,18 @@
 import React, { useEffect } from "react";
 import { useAppContext } from "../../context/AppContext";
 import { useState } from "react";
-import { assets,  } from "../../assets/assets";
-import axios from "axios";
+import { assets } from "../../assets/assets";
 import toast from "react-hot-toast";
 
 const Orders = () => {
-  const { currency } = useAppContext();
+  const { currency, axios } = useAppContext();
   const [orders, setOrders] = useState([]);
 
   const fetchOrders = async () => {
     try {
-      const { data } = await axios.get("/api/orders/seller");
+      const { data } = await axios.get("/api/sellers/orders");
       if (data.success) {
         setOrders(data.orders);
-        toast.success("Orders fetched successfully");
       }
     } catch (error) {
       toast.error("Failed to fetch orders");
@@ -29,7 +27,10 @@ const Orders = () => {
     <div className="no-scrollbar flex-1 h-[95vh] overflow-y-scroll">
     <div className="md:p-10 p-4 space-y-4">
       <h2 className="text-lg font-medium">Orders List</h2>
-      {orders.map((order, index) => (
+      {orders.length === 0 ? (
+        <p className="text-gray-500">No orders found</p>
+      ) : (
+      orders.map((order, index) => (
         <div
           key={index}
           className="flex flex-col md:grid md:grid-cols-[2fr_1fr_1fr_1fr] md:items-center gap-5 p-5 max-w-4xl rounded-md border border-gray-300 text-gray-800"
@@ -61,9 +62,9 @@ const Orders = () => {
               {order.address.firstName} {order.address.lastName}
             </p>
             <p>
-              {order.address.street}, {order.address.city},{" "}
-              {order.address.state},{order.address.zipcode},{" "}
-              {order.address.phone}
+              {order.address.streetAddress}, {order.address.city},{" "}
+              {order.address.state}, {order.address.zipCode},{" "}
+              {order.address.phoneNumber}
             </p>
           </div>
 
@@ -77,7 +78,8 @@ const Orders = () => {
             <p>Payment: {order.isPaid ? "Paid" : "Pending"}</p>
           </div>
         </div>
-      ))}
+      ))
+      )}
     </div>
     </div>
   );

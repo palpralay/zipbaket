@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
-import { toast } from "../utils/toast";
-import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const Cart = () => {
   const [showAddress, setShowAddress] = useState(false);
@@ -21,6 +20,15 @@ const Cart = () => {
   const [address, setAddress] = useState([]);
   const [selectAddress, setSelectedAddress] = useState(null);
   const [paymentOption, setPaymentOption] = useState("COD");
+  const { axios } = useAppContext();
+
+  // Check if user is logged in
+  useEffect(() => {
+    if (!user) {
+      navigate("/");
+      toast.error("Please login to view cart");
+    }
+  }, [user, navigate]);
 
   const getUserAddress = useCallback(async () => {
     try {
@@ -36,7 +44,7 @@ const Cart = () => {
     } catch (error) {
       toast.error(error.message);
     }
-  }, []);
+  }, [axios]);
 
   useEffect(() => {
     if (user) {
@@ -87,23 +95,24 @@ const Cart = () => {
     }
     try {
       if (paymentOption === "COD") {
-        const { data } = await axios.post("/api/orders/place", {
+        const { data } = await axios.post("/api/orders/cod", {
+          userId: user._id,
           items: cartArray.map((item) => ({
-            product: item._id,
+            productId: item._id,
             quantity: item.quantity,
-            address: selectAddress._id,
           })),
+          address: selectAddress._id,
         });
         if (data.success) {
           toast.success("Order placed successfully!");
           setCartItems({});
-          navigate("/myorder");
+          navigate("/my-orders");
         } else {
           toast.error(data.message);
         }
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
@@ -262,7 +271,7 @@ const Cart = () => {
             <div className="flex justify-between items-start gap-2">
               <p className="text-gray-600 text-sm flex-1">
                 {selectAddress
-                  ? `${selectAddress.street}, ${selectAddress.city}, ${selectAddress.state}, ${selectAddress.country}`
+                  ? `${selectAddress.streetAddress}, ${selectAddress.city}, ${selectAddress.state}, ${selectAddress.country}`
                   : "No address selected"}
               </p>
               <button
@@ -286,7 +295,7 @@ const Cart = () => {
                       }}
                       className="text-gray-600 p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0"
                     >
-                      {addr.street}, {addr.city}, {addr.state}, {addr.country}
+                      {addr.streetAddress}, {addr.city}, {addr.state}, {addr.country}
                     </p>
                   ))
                 ) : (
@@ -314,7 +323,7 @@ const Cart = () => {
             className="w-full border border-gray-300 bg-white px-3 py-2.5 rounded outline-none cursor-pointer focus:border-primary transition text-gray-700"
             value={paymentOption}
           >
-            <option value="cod">Cash On Delivery</option>
+            <option value="COD">Cash On Delivery</option>
             <option value="online">Online Payment</option>
           </select>
         </div>
@@ -356,7 +365,7 @@ const Cart = () => {
           onClick={handlePlaceOrder}
           className="w-full py-3 mt-6 cursor-pointer bg-primary text-white font-medium rounded-lg hover:bg-primary-dull transition-all shadow-sm hover:shadow-md"
         >
-          {paymentOption === "cod" ? "Place Order" : "Proceed to Checkout"}
+          {paymentOption === "COD" ? "Place Order" : "Proceed to Checkout"}
         </button>
 
         <p className="text-xs text-gray-500 text-center mt-4">

@@ -3,41 +3,61 @@ import { assets } from "../../assets/assets";
 import { AppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import axios from "axios";
 
 const SellerLogin = () => {
-  const { setIsSeller } = useContext(AppContext);
+  const { setIsSeller, isSeller, axios } = useContext(AppContext);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Check if already authenticated
   useEffect(() => {
-    try {
-      const token = localStorage.getItem("sellerToken");
-      if (token) {
-        navigate("/seller");
+    const checkAuth = async () => {
+      try {
+        const { data } = await axios.get("/api/sellers/isSellerAuth", {
+          validateStatus: (status) => status < 500
+        });
+        if (data.success) {
+          setIsSeller(true);
+          navigate("/seller");
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
       }
-    } catch (error) {
-      console.error("LocalStorage access error:", error);
-    }
-  }, [navigate, setIsSeller]);
+    };
+    checkAuth();
+  }, [axios, navigate, setIsSeller]);
 
   const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    
+    setIsLoading(true);
+    console.log(`Attempting seller login with email: ${email}`);
+    
     try {
-      e.preventDefault();
-      const {data}= await axios.post("/seller/login", { email, password });
+      const { data } = await axios.post("/api/sellers/login", { email, password });
       if (data.success) {
+        console.log("✓ Seller login successful");
+        toast.success("Logged in successfully");
         setIsSeller(true);
         navigate("/seller");
       } else {
-        toast.error(data.message);
+        console.log("✗ Seller login failed:", data.message);
+        toast.error(data.message || "Login failed");
       }
-      
     } catch (error) {
-        toast.error(error.message);
-      
+      console.error("✗ Seller login error:", error);
+      toast.error(error.response?.data?.message || error.message || "Login failed");
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen no-scrollbar flex items-center justify-center px-4 py-8 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
@@ -101,9 +121,10 @@ const SellerLogin = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary-dull cursor-pointer text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  disabled={isLoading}
+                  className="w-full bg-primary hover:bg-primary-dull cursor-pointer text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  Sign In
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </button>
 
                 <div className="text-center">
@@ -122,7 +143,7 @@ const SellerLogin = () => {
 
               <div className="mt-6 text-center text-sm text-gray-500">
                 <p>Demo Credentials:</p>
-                <p className="text-primary">admin@zipbasket.com / admin123</p>
+                <p className="text-primary">seller@example.com/ sellerpassword</p>
               </div>
             </div>
           </div>

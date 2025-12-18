@@ -1,14 +1,14 @@
 import React from "react";
 import { useAppContext } from "../context/AppContext";
 import { toast } from "react-hot-toast";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [state, setState] = React.useState("login");
+  const [isLoading, setIsLoading] = React.useState(false);
   const navigate = useNavigate();
 
-  const { setShowUserLogin, setUser, setCartItems } = useAppContext();
+  const { setShowUserLogin, setUser, setCartItems, axios } = useAppContext();
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -18,6 +18,21 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.email || !formData.password) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    if (state !== "login" && !formData.name) {
+      toast.error("Please enter your name");
+      return;
+    }
+    
+    setIsLoading(true);
+    console.log(`Attempting ${state} with email: ${formData.email}`);
+    
     try {
       const { data } = await axios.post(`/api/users/${state}`, {
         name: formData.name,
@@ -26,18 +41,23 @@ const Login = () => {
       });
       
       if (data.success) {
+        console.log(`✓ ${state} successful`);
         toast.success(state === "login" ? "User logged in successfully" : "User registered successfully");
         setUser(data.user);
         setCartItems(data.user.cartItem || {});
         setShowUserLogin(false);
         navigate("/");
       } else {
+        console.log(`✗ ${state} failed:`, data.message);
         toast.error(data.message);
       }
     } catch (error) {
+      console.error(`✗ ${state} error:`, error);
       toast.error(
         `${state === "login" ? "Login" : "Registration"} failed: ` + (error.response?.data?.message || error.message)
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -147,9 +167,10 @@ const Login = () => {
         </div>
         <button
           type="submit"
-          className="mt-2 w-full h-11 rounded-full text-white bg-primary hover:opacity-90 transition-opacity"
+          disabled={isLoading}
+          className="mt-2 w-full h-11 rounded-full text-white bg-primary hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {state === "login" ? "Login" : "Sign up"}
+          {isLoading ? "Please wait..." : (state === "login" ? "Login" : "Sign up")}
         </button>
         <p
           onClick={() =>

@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useAppContext } from "../context/AppContext";
 
 const AddAddress = () => {
-  const { axios, navigate } = useAppContext();
+  const { axios, navigate, user } = useAppContext();
   const [address, setAddress] = React.useState({
     firstName: "",
     lastName: "",
@@ -64,7 +64,7 @@ const AddAddress = () => {
 useEffect(() => {
     if(!user)
       navigate("/login");
-  }, []);
+  }, [user, navigate]);
 
   const InputField = ({ type, placeholder, name, handelchange, address }) => (
     <input

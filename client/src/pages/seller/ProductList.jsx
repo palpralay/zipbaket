@@ -7,10 +7,10 @@ const ProductList = () => {
 
     const toggleStock = async (id, inStock)=> {
         try {
-            const{data} = await axios.patch(`/api/product/stock/${id}`, { inStock: !inStock });
+            const{data} = await axios.patch(`/api/products/stock/${id}`, { inStock: !inStock });
             if (data.success) {
                 fetchProducts();
-                toast.success(data.message);
+                toast.success("Stock status updated successfully");
             }
             else {
                 toast.error(data.message);

@@ -1,9 +1,11 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { assets } from "../../assets/assets";
-import axios from "axios";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const AddProduct = () => {
+  const { axios } = useAppContext();
   const [files, setFiles] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -14,7 +16,17 @@ const AddProduct = () => {
   const [addCategory, setAddCategory] = useState("");
   const [categoryImage, setCategoryImage] = useState(null);
 
-  const [categories, setCategories] = useState([]);
+  const defaultCategories = [
+    { path: "BAKERY & BREADS", image: null },
+    { path: "ORGANIC VEGGIES", image: null },
+    { path: "FRESH FRUITS", image: null },
+    { path: "COLD DRINKS", image: null },
+    { path: "INSTANT FOOD", image: null },
+    { path: "DAIRY PRODUCTS", image: null },
+    { path: "GRAINS & CEREALS", image: null },
+  ];
+
+  const [categories, setCategories] = useState(defaultCategories);
   const [loading, setLoading] = useState(false);
 
   // Fetch categories on component mount
@@ -34,18 +46,26 @@ const AddProduct = () => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:4000/api/product/categories"
+        "/api/products/categories"
       );
-      if (response.data.success) {
-        setCategories(
-          response.data.categories.map((cat) => ({
-            path: cat.name,
-            image: cat.image,
-          }))
-        );
+      if (response.data.success && response.data.categories.length > 0) {
+        const apiCategories = response.data.categories.map((cat) => ({
+          path: cat.name,
+          image: cat.image,
+        }));
+        // Merge with defaults, avoiding duplicates
+        const merged = [...defaultCategories];
+        apiCategories.forEach((apiCat) => {
+          if (!merged.find((c) => c.path === apiCat.path)) {
+            merged.push(apiCat);
+          }
+        });
+        setCategories(merged);
       }
+      // If API fails or returns empty, keep default categories
     } catch (error) {
       console.error("Error fetching categories:", error);
+      // Keep default categories on error
     }
   };
 
@@ -59,7 +79,7 @@ const AddProduct = () => {
           formData.append("image", categoryImage);
 
           const response = await axios.post(
-            "http://localhost:4000/api/product/add-category",
+            "/api/products/add-category",
             formData
           );
 
@@ -72,13 +92,14 @@ const AddProduct = () => {
             setCategory(addCategory);
             setAddCategory("");
             setCategoryImage(null);
+            toast.success("Category added successfully!");
           }
         } catch (error) {
           console.error("Error adding category:", error);
-          alert(error.response?.data?.message || "Failed to add category");
+          toast.error(error.response?.data?.message || "Failed to add category");
         }
       } else {
-        alert("Category already exists");
+        toast.error("Category already exists");
       }
     }
   };
@@ -89,7 +110,7 @@ const AddProduct = () => {
     // Validate images
     const uploadedImages = files.filter((file) => file !== undefined);
     if (uploadedImages.length === 0) {
-      alert("Please upload at least one product image");
+      toast.error("Please upload at least one product image");
       return;
     }
 
@@ -101,7 +122,7 @@ const AddProduct = () => {
       !price ||
       !offerPrice
     ) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -125,7 +146,7 @@ const AddProduct = () => {
       });
 
       const response = await axios.post(
-        "http://localhost:4000/api/product/add-product",
+        "/api/products/add-product",
         formData,
         {
           headers: {
@@ -135,7 +156,7 @@ const AddProduct = () => {
       );
 
       if (response.data.success) {
-        alert("Product added successfully!");
+        toast.success("Product added successfully!");
         // Reset form
         setFiles([]);
         setName("");
@@ -146,7 +167,7 @@ const AddProduct = () => {
       }
     } catch (error) {
       console.error("Error adding product:", error);
-      alert(error.response?.data?.message || "Failed to add product");
+      toast.error(error.response?.data?.message || "Failed to add product");
     } finally {
       setLoading(false);
     }

@@ -1,12 +1,17 @@
 import express from "express";
-import { register, login, isAuth, logout } from "../controllers/userController.js";
+import { register, login, isAuth, logout, updateProfile, changePassword } from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
 
 const userRoutes = express.Router();
 
+// Public routes
 userRoutes.post("/register", register);
 userRoutes.post("/login", login);
-userRoutes.get("/isAuth", authUser, isAuth); // ✓ Use authUser middleware
-userRoutes.get("/logout", authUser, logout);
+
+// Protected routes
+userRoutes.get("/isAuth", authUser, isAuth);
+userRoutes.post("/logout", authUser, logout);
+userRoutes.put("/profile", authUser, updateProfile);
+userRoutes.post("/change-password", authUser, changePassword);
 
 export default userRoutes;

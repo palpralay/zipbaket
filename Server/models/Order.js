@@ -1,20 +1,68 @@
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  items: [
-    {
-      productId: { type: String, required: true, ref: "prodcut" },
-      quantity: { type: Number, required: true },
-    }],
-    amount: { type: Number, required: true },
-    address: { type:String, required: true },
-    status: { type: String, default: "Order Placed" },
-    paymentType: { type: String, required: true },
-    isPaid: { type: Boolean, required: true },
-    createdAt: { type: Date, default: Date.now },
-  
+  userId: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true 
+  },
+  items: [{
+    productId: { 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: true 
+    },
+    quantity: { 
+      type: Number, 
+      required: true,
+      min: 1
+    }
+  }],
+  amount: { 
+    type: Number, 
+    required: true,
+    min: 0
+  },
+  address: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Address",
+    required: true 
+  },
+  status: { 
+    type: String, 
+    default: "Order Placed",
+    enum: [
+      "Order Placed",
+      "Processing",
+      "Shipped",
+      "Out for Delivery",
+      "Delivered",
+      "Cancelled"
+    ]
+  },
+  paymentType: { 
+    type: String, 
+    required: true,
+    enum: ["Cash on Delivery", "Online"]
+  },
+  isPaid: { 
+    type: Boolean, 
+    required: true,
+    default: false
+  },
+  paidAt: {
+    type: Date
+  },
+  deliveredAt: {
+    type: Date
+  }
+}, { 
+  timestamps: true 
 });
 
-const Order = mongoose.models.order || mongoose.model("order", orderSchema);
+// Add indexes for better query performance
+orderSchema.index({ userId: 1, createdAt: -1 });
+orderSchema.index({ status: 1 });
+
+const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
 export default Order;

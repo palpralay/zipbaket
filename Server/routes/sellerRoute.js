@@ -4,7 +4,10 @@ import { sellerLogin, sellerLogout, isSellerAuth } from "../controllers/sellerCo
 
 const sellerRoutes = express.Router();
 
+// Public routes
 sellerRoutes.post("/login", sellerLogin);
+
+// Protected routes
 sellerRoutes.post("/logout", authSeller, sellerLogout);
 sellerRoutes.get("/isSellerAuth", authSeller, isSellerAuth);
 

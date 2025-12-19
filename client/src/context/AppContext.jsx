@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { toast } from "react-hot-toast";
 import axiosInstance from "../utils/axios";
 import axios from "../utils/axios";
+import { dummyProducts } from "../assets/assets";
 
 export const AppContext = createContext();
 
@@ -15,7 +16,7 @@ export const AppContextProvider = ({ children }) => {
   const [isSeller, setIsSeller] = useState(false);
   const [sellerLoading, setSellerLoading] = useState(true); 
   const [showUserLogin, setShowUserLogin] = useState(false);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(dummyProducts);
   const [cartItems, setCartItems] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -76,9 +77,11 @@ export const AppContextProvider = ({ children }) => {
   fetchSeller();
 }, []);
 
-useEffect(() => {
-  fetchProducts();
-}, []);
+// Products are now loaded from assets.js (dummyProducts)
+// Uncomment the line below if you want to fetch from server instead
+// useEffect(() => {
+//   fetchProducts();
+// }, []);
 
 
   useEffect(() => {

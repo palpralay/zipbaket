@@ -3,6 +3,18 @@ import { assets } from "../assets/assets";
 import toast from "react-hot-toast";
 import { useAppContext } from "../context/AppContext";
 
+const InputField = ({ type, placeholder, name, handleChange, address }) => (
+  <input
+    className="w-full px-2 py-2.5 border border-gray-500/30 rounded outline-none text-gray-500 focus:border-primary transition"
+    type={type}
+    placeholder={placeholder}
+    name={name}
+    onChange={handleChange}
+    value={address[name]}
+    required
+  />
+);
+
 const AddAddress = () => {
   const { axios, navigate, user } = useAppContext();
   const [address, setAddress] = React.useState({
@@ -17,12 +29,12 @@ const AddAddress = () => {
     country: "",
   });
 
-  const handelchange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setAddress((prev) => ({ ...prev, [name]: value }));
   };
 
-  const onSubmitHandel = async (e) => {
+  const onSubmitHandle = async (e) => {
     try {
       e.preventDefault();
       const addressData = {
@@ -61,22 +73,11 @@ const AddAddress = () => {
     }
   };
 
-useEffect(() => {
-    if(!user)
+  useEffect(() => {
+    if (!user) {
       navigate("/login");
+    }
   }, [user, navigate]);
-
-  const InputField = ({ type, placeholder, name, handelchange, address }) => (
-    <input
-      className="w-full px-2 py-2.5 border border-gray-500/30 rounded outline-none text-gray-500 focus:border-primary transition"
-      type={type}
-      placeholder={placeholder}
-      name={name}
-      onChange={handelchange}
-      value={address[name]}
-      required
-    />
-  );
 
   return (
     <div className="mt-16 pb-16">
@@ -85,17 +86,17 @@ useEffect(() => {
       </p>
       <div className="flex flex-col-reverse md:flex-row justify-between mt-10">
         <div className="flex-1 max-w-md">
-          <form className="space-y-3 mt-6 text-sm" onSubmit={onSubmitHandel}>
+          <form className="space-y-3 mt-6 text-sm" onSubmit={onSubmitHandle}>
             <div className="grid grid-cols-2 gap-4">
               <InputField
-                handelchange={handelchange}
+                handleChange={handleChange}
                 address={address}
                 name="firstName"
                 type="text"
                 placeholder="First Name"
               />
               <InputField
-                handelchange={handelchange}
+                handleChange={handleChange}
                 address={address}
                 name="lastName"
                 type="text"
@@ -104,14 +105,14 @@ useEffect(() => {
             </div>
 
             <InputField
-              handelchange={handelchange}
+              handleChange={handleChange}
               address={address}
               name="email"
               type="email"
               placeholder="Email Address"
             />
             <InputField
-              handelchange={handelchange}
+              handleChange={handleChange}
               address={address}
               name="street"
               type="text"
@@ -119,14 +120,14 @@ useEffect(() => {
             />
             <div className="grid grid-cols-2 gap-4">
               <InputField
-                handelchange={handelchange}
+                handleChange={handleChange}
                 address={address}
                 name="city"
                 type="text"
                 placeholder="City"
               />
               <InputField
-                handelchange={handelchange}
+                handleChange={handleChange}
                 address={address}
                 name="country"
                 type="text"
@@ -135,14 +136,14 @@ useEffect(() => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <InputField
-                handelchange={handelchange}
+                handleChange={handleChange}
                 address={address}
                 name="state"
                 type="text"
                 placeholder="State"
               />
               <InputField
-                handelchange={handelchange}
+                handleChange={handleChange}
                 address={address}
                 name="zipCode"
                 type="text"
@@ -150,7 +151,7 @@ useEffect(() => {
               />
             </div>
             <InputField
-              handelchange={handelchange}
+              handleChange={handleChange}
               address={address}
               name="phone"
               type="tel"

@@ -29,22 +29,22 @@ const AddProduct = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await axios.get("/api/products/categories");
+        if (data.success && data.categories?.length > 0) {
+          const categoryNames = data.categories.map((cat) => cat.name);
+          const merged = [...new Set([...defaultCategories, ...categoryNames])];
+          setCategories(merged);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        toast.error("Failed to fetch categories");
+      }
+    };
+
     fetchCategories();
   }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const { data } = await axios.get("/api/products/categories");
-      if (data.success && data.categories?.length > 0) {
-        const categoryNames = data.categories.map((cat) => cat.name);
-        const merged = [...new Set([...defaultCategories, ...categoryNames])];
-        setCategories(merged);
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      toast.error("Failed to fetch categories");
-    }
-  };
 
   const handleAddCategory = async () => {
     if (!addCategory.trim()) {
@@ -121,9 +121,10 @@ const AddProduct = () => {
         if (file) formData.append("images", file);
       });
 
+      console.log("🍪 Cookies being sent:", document.cookie);
+      
       const { data } = await axios.post("/api/products/add-product", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true
+        headers: { "Content-Type": "multipart/form-data" }
       });
 
       if (data.success) {

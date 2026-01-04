@@ -1,4 +1,3 @@
-import React from "react";
 import Navbar from "./component/Navbar";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
@@ -36,7 +35,7 @@ const App = () => {
         className={`${isSellerpath ? "" : "px-6 md:px-16 lg:px-24 xl:px-32"}`}
       >
         <Routes>
-          {/* Public Routes */}
+          
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<AllProduct />} />
           <Route path="/category/:category" element={<ProductCategories />} />
@@ -45,7 +44,7 @@ const App = () => {
           <Route path="/add-address" element={<AddAddress />} />
           <Route path="/my-orders" element={<Myorders />} />
 
-          {/* Seller Routes - Nested properly */}
+  
           <Route
             path="/seller/*"
             element={
@@ -56,7 +55,7 @@ const App = () => {
               )
             }
           >
-            {/* These are nested routes that render in <Outlet /> */}
+
             <Route index element={<AddProduct />} />
             <Route path="product-list" element={<ProductList />} />
             <Route path="orders" element={<Orders />} />

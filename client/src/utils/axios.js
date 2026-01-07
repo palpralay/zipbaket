@@ -2,11 +2,12 @@ import axios from 'axios';
 
 // Create a configured axios instance
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000',
+  // baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000',
+  // Use relative path to leverage Vite Proxy in development
+  // This avoids CORS issues and ensures cookies are sent correctly (SameSite behavior)
+  baseURL: '/', 
   withCredentials: true, // ✓ This is critical for sending cookies
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // headers: { 'Content-Type': 'application/json' } // REMOVED: Let Axios/Browser handle Content-Type (especially for FormData)
 });
 
 // Request interceptor - Don't interfere with headers

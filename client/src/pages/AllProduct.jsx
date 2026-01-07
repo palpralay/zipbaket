@@ -1,4 +1,3 @@
-import React from "react";
 import { useAppContext } from "../context/AppContext";
 import { useState, useEffect } from "react";
 import ProductCard from "../component/ProductCard";
@@ -8,8 +7,9 @@ const AllProduct = () => {
   const [filterProduct, setFilterProduct] = useState([]);
   useEffect(() => {
     if (searchQuery.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterProduct(
-        products.filter((product) =>
+        products?.filter((product) =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase())
         )
       );
@@ -25,7 +25,7 @@ const AllProduct = () => {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {filterProduct
-          .filter((product) => product.inStock)
+          ?.filter((product) => product.inStock)
           .map((product, idx) => (
             <ProductCard key={idx} product={product} />
           ))}

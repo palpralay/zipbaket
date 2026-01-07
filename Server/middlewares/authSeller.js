@@ -2,7 +2,12 @@ import jwt from "jsonwebtoken";
 
 const authSeller = (req, res, next) => {
   try {
-    console.log("🔍 Auth Seller Middleware - All cookies:", req.cookies);
+    // Debugging logs
+    console.log("🔍 Auth Seller Middleware");
+    console.log("Origin:", req.headers.origin);
+    console.log("Raw Cookie Header:", req.headers.cookie);
+    console.log("Parsed Cookies:", req.cookies);
+
     const sellerToken = req.cookies?.sellerToken;
 
     if (!sellerToken) {

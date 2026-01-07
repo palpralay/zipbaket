@@ -5,9 +5,14 @@ import { useEffect } from "react";
 import { toast } from "react-hot-toast";
 import axiosInstance from "../utils/axios";
 import axios from "../utils/axios";
-import { dummyProducts } from "../assets/assets";
+// import { dummyProducts } from "../assets/assets";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AppContext = createContext();
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAppContext = () => useContext(AppContext);
+
 
 export const AppContextProvider = ({ children }) => {
   const currency = import.meta.env.VITE_CURRENCY;
@@ -16,7 +21,7 @@ export const AppContextProvider = ({ children }) => {
   const [isSeller, setIsSeller] = useState(false);
   const [sellerLoading, setSellerLoading] = useState(true); 
   const [showUserLogin, setShowUserLogin] = useState(false);
-  const [products, setProducts] = useState(dummyProducts);
+  const [products, setProducts] = useState();
   const [cartItems, setCartItems] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -47,6 +52,7 @@ export const AppContextProvider = ({ children }) => {
       setIsSeller(false);
     }
   } catch (error) {
+    console.log(error);
     setIsSeller(false);
   } finally {
     setSellerLoading(false); // ✅ done loading
@@ -79,9 +85,9 @@ export const AppContextProvider = ({ children }) => {
 
 // Products are now loaded from assets.js (dummyProducts)
 // Uncomment the line below if you want to fetch from server instead
-// useEffect(() => {
-//   fetchProducts();
-// }, []);
+useEffect(() => {
+  fetchProducts();
+}, []);
 
 
   useEffect(() => {
@@ -98,7 +104,7 @@ export const AppContextProvider = ({ children }) => {
       }
     };
     updateCartOnServer();
-  }, [cartItems]);
+  }, [cartItems, user]);
 
   const addToCart = (itemId) => {
     let cardData = structuredClone(cartItems);
@@ -193,8 +199,4 @@ export const AppContextProvider = ({ children }) => {
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
-
-export const useAppContext = () => {
-  return useContext(AppContext);
 };

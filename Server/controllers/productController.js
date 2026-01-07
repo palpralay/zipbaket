@@ -1,6 +1,7 @@
 import { cloudinary } from "../configs/cloudinary.js";
 import Product from "../models/product.js";
 import Category from "../models/addCategory.js";
+import fs from "fs";
 
 // Add product
 export const addProduct = async (req, res) => {
@@ -27,11 +28,25 @@ export const addProduct = async (req, res) => {
     // Upload images to cloudinary
     let imageURLs = await Promise.all(
       images.map(async (file) => {
-        const result = await cloudinary.uploader.upload(file.path, {
-          resource_type: "image",
-          folder: "zipbasket_products"
-        });
-        return result.secure_url;
+        try {
+            const result = await cloudinary.uploader.upload(file.path, {
+                resource_type: "image",
+                folder: "zipbasket_products"
+            });
+            
+            // Delete local file after successful upload
+            if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path); 
+            }
+            
+            return result.secure_url;
+        } catch (uploadError) {
+             // Try to delete file even if upload fails
+             if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+             }
+             throw uploadError;
+        }
       })
     );
 

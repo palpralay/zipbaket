@@ -117,7 +117,7 @@ const Cart = () => {
   };
 
   // Empty cart state
-  if (!products.length || !cartItems || Object.keys(cartItems).length === 0) {
+  if (!products?.length || !cartItems || Object.keys(cartItems).length === 0) {
     return (
       <div className="flex flex-col items-center justify-center mt-24 mb-24">
         <img

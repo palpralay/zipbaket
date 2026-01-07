@@ -41,10 +41,10 @@ const SellerLogin = () => {
     console.log(`Attempting seller login with email: ${email}`);
     
     try {
-      const { data } = await axios.post("/api/sellers/login", { email, password });
+      const { data } = await axios.post("/api/sellers/login", { email, password }, { withCredentials: true });
       if (data.success) {
         console.log("✓ Seller login successful");
-        console.log("🍪 Cookie after login:", document.cookie);
+        // Note: HttpOnly cookies won't appear in document.cookie
         toast.success("Logged in successfully");
         setIsSeller(true);
         navigate("/seller");

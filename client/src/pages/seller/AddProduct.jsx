@@ -121,10 +121,12 @@ const AddProduct = () => {
         if (file) formData.append("images", file);
       });
 
-      console.log("🍪 Cookies being sent:", document.cookie);
-      
+      console.log("📤 Sending product data...");
+
+      // NOTE: When using FormData, let the browser set the Content-Type header with the boundary.
+      // Do NOT set 'Content-Type': 'multipart/form-data' manually.
       const { data } = await axios.post("/api/products/add-product", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+        withCredentials: true // Ensure cookies are sent
       });
 
       if (data.success) {

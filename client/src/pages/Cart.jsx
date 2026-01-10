@@ -32,7 +32,13 @@ const Cart = () => {
 
   const getUserAddress = useCallback(async () => {
     try {
+      // Debug: Log user state before API call
+      console.log("🔍 DEBUG: Fetching addresses for user:", user);
+      console.log("🔍 DEBUG: Document cookies:", document.cookie);
+      
       const { data } = await axios.get("/api/address/get");
+      console.log("✅ DEBUG: Address response:", data);
+      
       if (data.success) {
         setAddress(data.addresses);
         if (data.addresses && data.addresses.length > 0) {
@@ -42,13 +48,25 @@ const Cart = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("❌ DEBUG: Address fetch error:", error);
+      console.error("❌ DEBUG: Error response:", error.response?.data);
+      console.error("❌ DEBUG: Error status:", error.response?.status);
+      
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please login again.");
+        navigate("/");
+      } else {
+        toast.error(error.response?.data?.message || error.message);
+      }
     }
-  }, [axios]);
+  }, [axios, user, navigate]);
 
   useEffect(() => {
     if (user) {
+      console.log("📍 User authenticated, fetching addresses...");
       getUserAddress();
+    } else {
+      console.warn("⚠️ No user found, skipping address fetch");
     }
   }, [user, getUserAddress]);
 

@@ -91,16 +91,29 @@ useEffect(() => {
 
 
   useEffect(() => {
-    console.log("Cart Items Updated:", cartItems);
+    console.log("🛒 Cart Items Updated:", cartItems);
     const updateCartOnServer = async () => {
       if (user) {
         try {
-          await axiosInstance.post("/api/users/updateCart", {
+          console.log("📤 Updating cart on server for user:", user._id);
+          console.log("📦 Cart data being sent:", cartItems);
+          
+          const response = await axiosInstance.post("/api/cart/update", {
             cartItem: cartItems,
           });
+          
+          console.log("✅ Cart updated successfully:", response.data);
         } catch (error) {
-          console.error("Failed to update cart on server:", error);
+          console.error("❌ Failed to update cart on server:", error);
+          console.error("❌ Error response:", error.response?.data);
+          console.error("❌ Error status:", error.response?.status);
+          
+          if (error.response?.status === 401) {
+            console.error("🔒 Authentication error - user might need to re-login");
+          }
         }
+      } else {
+        console.warn("⚠️ No user logged in, skipping cart sync");
       }
     };
     updateCartOnServer();

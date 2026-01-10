@@ -26,7 +26,11 @@ const authUser = (req, res, next) => {
 
     // Attach user ID to request
     req.userId = decoded.id;
-    req.body.userId = decoded.id; // For compatibility with some controllers
+    
+    // Only set userId in body if body exists (not for GET requests)
+    if (req.body && typeof req.body === 'object') {
+      req.body.userId = decoded.id;
+    }
 
     next();
   } catch (error) {

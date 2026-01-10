@@ -63,14 +63,22 @@ export const placeOrderCOD = async (req, res) => {
 // Get orders by user
 export const getOrdersByUser = async (req, res) => {
   try {
-    const userId = req.body.userId || req.userId;
+    console.log("📦 Get Orders Request:");
+    console.log("  - User ID from middleware:", req.userId);
+    console.log("  - User ID from body:", req.body.userId);
+    console.log("  - Request method:", req.method);
+    
+    const userId = req.userId || req.body.userId;
 
     if (!userId) {
+      console.log("❌ No user ID found");
       return res.status(400).json({
         success: false,
         message: "User ID is required"
       });
     }
+
+    console.log(`🔍 Fetching orders for user: ${userId}`);
 
     const orders = await Order.find({ 
       userId,
@@ -85,6 +93,8 @@ export const getOrdersByUser = async (req, res) => {
     })
     .populate('address')
     .sort({ createdAt: -1 });
+    
+    console.log(`✅ Found ${orders.length} orders for user`);
 
     // Transform the data to match frontend expectations
     const transformedOrders = orders.map(order => ({

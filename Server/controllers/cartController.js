@@ -3,10 +3,15 @@ import User from "../models/user.js";
 // Update cart
 export const updateCart = async (req, res) => {
   try {
+    console.log("🛒 Update Cart Request:");
+    console.log("  - User ID from middleware:", req.userId);
+    console.log("  - Request body:", req.body);
+    
     const userId = req.userId || req.body.userId;
     const { cartItem } = req.body;
 
     if (!userId) {
+      console.log("❌ No user ID found");
       return res.status(400).json({ 
         success: false, 
         message: "User ID is required" 
@@ -14,12 +19,15 @@ export const updateCart = async (req, res) => {
     }
 
     if (!cartItem || typeof cartItem !== 'object') {
+      console.log("❌ Invalid cart data");
       return res.status(400).json({ 
         success: false, 
         message: "Valid cart data is required" 
       });
     }
 
+    console.log(`📦 Updating cart for user ${userId}:`, cartItem);
+    
     const user = await User.findByIdAndUpdate(
       userId, 
       { cartItem },
@@ -27,11 +35,14 @@ export const updateCart = async (req, res) => {
     );
 
     if (!user) {
+      console.log("❌ User not found:", userId);
       return res.status(404).json({ 
         success: false, 
         message: "User not found" 
       });
     }
+
+    console.log("✅ Cart updated successfully for:", user.email);
 
     res.json({ 
       success: true, 
@@ -39,7 +50,7 @@ export const updateCart = async (req, res) => {
       cartItem: user.cartItem 
     });
   } catch (error) {
-    console.error("Update cart error:", error);
+    console.error("❌ Update cart error:", error);
     res.status(500).json({ 
       success: false, 
       message: error.message || "Server Error" 

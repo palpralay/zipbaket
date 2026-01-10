@@ -1,7 +1,6 @@
 import { cloudinary } from "../configs/cloudinary.js";
 import Product from "../models/product.js";
 import Category from "../models/addCategory.js";
-import fs from "fs";
 
 // Add product
 export const addProduct = async (req, res) => {
@@ -25,27 +24,23 @@ export const addProduct = async (req, res) => {
       });
     }
 
-    // Upload images to cloudinary
+    // ✅ Upload images to cloudinary from memory buffer
     let imageURLs = await Promise.all(
       images.map(async (file) => {
         try {
-            const result = await cloudinary.uploader.upload(file.path, {
-                resource_type: "image",
-                folder: "zipbasket_products"
-            });
-            
-            // Delete local file after successful upload
-            if (fs.existsSync(file.path)) {
-                fs.unlinkSync(file.path); 
-            }
-            
-            return result.secure_url;
+          // Convert buffer to base64 data URI
+          const b64 = Buffer.from(file.buffer).toString("base64");
+          const dataURI = `data:${file.mimetype};base64,${b64}`;
+          
+          const result = await cloudinary.uploader.upload(dataURI, {
+            resource_type: "image",
+            folder: "zipbasket_products"
+          });
+          
+          return result.secure_url;
         } catch (uploadError) {
-             // Try to delete file even if upload fails
-             if (fs.existsSync(file.path)) {
-                fs.unlinkSync(file.path);
-             }
-             throw uploadError;
+          console.error("Upload error:", uploadError);
+          throw uploadError;
         }
       })
     );
@@ -189,7 +184,11 @@ export const addCategory = async (req, res) => {
 
     let imageUrl = "";
     if (image) {
-      const result = await cloudinary.uploader.upload(image.path, {
+      // ✅ Convert buffer to base64 for Vercel
+      const b64 = Buffer.from(image.buffer).toString("base64");
+      const dataURI = `data:${image.mimetype};base64,${b64}`;
+      
+      const result = await cloudinary.uploader.upload(dataURI, {
         resource_type: "image",
         folder: "zipbasket_categories"
       });
@@ -229,7 +228,7 @@ export const getCategories = async (req, res) => {
   }
 };
 
-// Delete product (for future use)
+// Delete product
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -271,7 +270,7 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// Update product (for future use)
+// Update product
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -293,9 +292,13 @@ export const updateProduct = async (req, res) => {
 
     // If new images are uploaded
     if (images && images.length > 0) {
+      // ✅ Upload from memory buffer
       let imageURLs = await Promise.all(
         images.map(async (file) => {
-          const result = await cloudinary.uploader.upload(file.path, {
+          const b64 = Buffer.from(file.buffer).toString("base64");
+          const dataURI = `data:${file.mimetype};base64,${b64}`;
+          
+          const result = await cloudinary.uploader.upload(dataURI, {
             resource_type: "image",
             folder: "zipbasket_products"
           });

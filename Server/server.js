@@ -14,13 +14,15 @@ import orderRoute from './routes/orderRoute.js';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Define allowed origins
+// Define allowed origins - ADD YOUR VERCEL FRONTEND URL HERE
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
-  'http://127.0.0.1:3000'
-];
+  'http://127.0.0.1:3000',
+  'https://your-frontend-app.vercel.app', // ← ADD YOUR VERCEL URL
+  process.env.FRONTEND_URL // ← Optional: Add as env variable
+].filter(Boolean); // Remove undefined values
 
 // Connect to database and cloudinary
 try {
@@ -95,3 +97,6 @@ app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
 });
+
+// Export for Vercel
+export default app;

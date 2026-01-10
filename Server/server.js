@@ -20,7 +20,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
-  'https://your-frontend-app.vercel.app', // ← ADD YOUR VERCEL URL
+  'https://zipbaket.vercel.app', // ← ADD YOUR VERCEL URL
   process.env.FRONTEND_URL // ← Optional: Add as env variable
 ].filter(Boolean); // Remove undefined values
 

@@ -1,19 +1,26 @@
 import axios from 'axios';
 
+// Determine the base URL based on environment
+const getBaseURL = () => {
+  // In production, use the backend URL from environment variable
+  if (import.meta.env.PROD) {
+    return import.meta.env.VITE_BACKEND_URL || 'https://zipbaket-backend.vercel.app';
+  }
+  
+  // In development, use relative path (proxied by Vite)
+  return '/';
+};
+
 // Create a configured axios instance
 const axiosInstance = axios.create({
-  // baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000',
-  // Use relative path to leverage Vite Proxy in development
-  // This avoids CORS issues and ensures cookies are sent correctly (SameSite behavior)
-  baseURL: '/', 
-  withCredentials: true, // ✓ This is critical for sending cookies
-  // headers: { 'Content-Type': 'application/json' } // REMOVED: Let Axios/Browser handle Content-Type (especially for FormData)
+  baseURL: getBaseURL(),
+  withCredentials: true, // ✓ Critical for sending cookies
+  timeout: 30000, // 30 second timeout
 });
 
-// Request interceptor - Don't interfere with headers
+// Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Just log, don't modify anything
     console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },

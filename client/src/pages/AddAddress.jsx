@@ -64,7 +64,7 @@ const AddAddress = () => {
           country: "",
         });
         toast.success("Address added successfully");
-        navigate("/");
+        navigate("/cart");
       } else {
         toast.error(data.message);
       }
